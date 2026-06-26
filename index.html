@@ -3,121 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Deployer</title>
+  <title>Deploy</title>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-  <!-- Material 3 Root Container -->
-  <div id="m3-app" style="display: none;">
-    
-    <!-- User Profile Header (Top-Left Connection Status) -->
-    <div id="profile-header">
-      <img id="user-avatar" src="" alt="Avatar">
-      <div style="display: flex; flex-direction: column;">
-        <span id="user-name"></span>
-        <span id="connection-status"></span>
+  <!-- Stark Neo-Brutalist Frame -->
+  <div id="brutalist-container">
+
+    <!-- Page 1: Stark Prompt Bar Only -->
+    <div id="view-1" class="brutalist-view">
+      <div class="m3-prompt-bar">
+        <input id="pat-input" type="password" placeholder="PAT" autocomplete="off" spellcheck="false" />
+        <button id="pat-submit">
+          <i data-lucide="arrow-right" style="stroke-width: 3;"></i>
+        </button>
       </div>
-      <button id="btn-reset-token" class="m3-icon-btn" style="margin-left: auto;">
-        <i data-lucide="log-out"></i>
+    </div>
+
+    <!-- Page 2: Stark selector & deployments -->
+    <div id="view-2" class="brutalist-view">
+      <!-- Only a center '+' Button -->
+      <button id="btn-plus" class="brutalist-btn" style="width: 80px; height: 80px; border-radius: 0; background-color: #FF55BB;">
+        <i data-lucide="plus" style="width: 36px; height: 36px; stroke-width: 4;"></i>
       </button>
+      <input type="file" id="file-input" accept=".html" style="display: none;" />
     </div>
 
-    <!-- Page 1: Configure PAT -->
-    <div id="view-1" class="view">
-      <div class="icon-avatar">
-        <i data-lucide="key-round"></i>
-      </div>
-      <h2 style="font-size: 22px; font-weight: 400; margin-bottom: 8px; color: #ffffff;">Access Token</h2>
-      <p style="font-size: 14px; color: #8e8e93; margin-bottom: 24px; line-height: 20px;">Provide a classic or fine-grained GitHub PAT with repository permissions.</p>
-      
-      <input id="pat-input" type="password" placeholder="ghp_..." autocomplete="off" spellcheck="false" />
-      
-      <div class="actions-row">
-        <a href="https://github.com/settings/tokens/new?scopes=public_repo" target="_blank" class="m3-button-tonal" style="flex: 1; text-decoration: none;">
-          <i data-lucide="help-circle"></i>
+    <!-- Loading Screen: Only a Circular Loader -->
+    <div id="view-loading" class="brutalist-view">
+      <div class="brutalist-circle-loader"></div>
+    </div>
+
+    <!-- Page 3: Stark Production Link -->
+    <div id="view-3" class="brutalist-view" style="width: 100%;">
+      <div style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+        <a id="link-external" href="#" target="_blank" class="brutalist-btn" style="background-color: #00E5FF; text-decoration: none; text-align: center; font-size: 14px; font-weight: 900; letter-spacing: 0.5px;">
+          <i data-lucide="external-link" style="width: 18px; height: 18px; stroke-width: 3; margin-right: 8px;"></i>
+          OPEN LIVE SITE
         </a>
-        <button id="pat-submit" class="m3-button" style="flex: 2;">
-          <i data-lucide="arrow-right"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Page 2: File Drop & Operations -->
-    <div id="view-2" class="view">
-      
-      <!-- State 2a: Neutral File Selector -->
-      <div id="state-drop" class="m3-dropzone">
-        <div class="icon-avatar" style="background-color: #1a1a1c;">
-          <i data-lucide="file-code" style="color: #a8c7fa;"></i>
-        </div>
-        <h3 style="font-size: 16px; font-weight: 500; color: #ffffff; margin: 0;">Select HTML Bundle</h3>
-        <p style="font-size: 12px; color: #8e8e93; margin: 0;">Files are automatically parsed to index.html</p>
-        <input type="file" id="file-input" accept=".html" style="display: none;" />
-      </div>
-
-      <!-- State 2b: Parallel Dispatch Processing -->
-      <div id="state-deploying" style="display: none; flex-direction: column; width: 100%;">
-        <div style="display: flex; justify-content: space-around; margin-bottom: 24px;">
-          <div id="step-user" class="progress-step"><i data-lucide="user"></i></div>
-          <div id="step-repo" class="progress-step"><i data-lucide="git-branch"></i></div>
-          <div id="step-file" class="progress-step"><i data-lucide="file-up"></i></div>
-          <div id="step-pages" class="progress-step"><i data-lucide="globe"></i></div>
-        </div>
-        
-        <p id="deploy-stage-text" style="font-size: 13px; color: #8e8e93; text-align: center; margin-bottom: 12px;"></p>
-        
-        <!-- M3 Indeterminate Progress Line -->
-        <div class="m3-progress-bar">
-          <div class="m3-progress-value"></div>
-        </div>
-      </div>
-
-      <!-- State 2c: Advanced Error Diagnostics -->
-      <div id="state-error" style="display: none; flex-direction: column; align-items: center; width: 100%;">
-        <div class="icon-avatar" style="background-color: #2c1614;">
-          <i data-lucide="alert-circle" style="color: #ffb4ab;"></i>
-        </div>
-        <h3 style="font-size: 16px; font-weight: 500; color: #ffb4ab; margin-bottom: 8px;">Pipeline Failure</h3>
-        <p id="error-text" style="font-size: 13px; color: #c4c6d0; margin-bottom: 20px; text-align: center; line-height: 18px;"></p>
-        
-        <div class="actions-row">
-          <button id="btn-file-select-retry" class="m3-button-tonal" style="flex: 1;">
-            <i data-lucide="arrow-left" style="margin-right: 8px;"></i>Back
+        <div style="display: flex; gap: 12px; width: 100%;">
+          <button id="btn-copy" class="brutalist-btn" style="flex: 1; background-color: #FFFFFF;">
+            <i data-lucide="copy" style="width: 18px; height: 18px; stroke-width: 3;"></i>
           </button>
-          <button id="btn-deploy-retry" class="m3-button" style="flex: 1; background-color: #ffb4ab; color: #690005;">
-            <i data-lucide="refresh-cw" style="margin-right: 8px;"></i>Retry
+          <button id="btn-back" class="brutalist-btn" style="flex: 1; background-color: #FFFFFF;">
+            <i data-lucide="refresh-cw" style="width: 18px; height: 18px; stroke-width: 3;"></i>
           </button>
         </div>
-      </div>
-
-    </div>
-
-    <!-- Page 3: Instant Live Production Link -->
-    <div id="view-3" class="view">
-      <div class="icon-avatar" style="background-color: #0f2d1e;">
-        <i data-lucide="rocket" style="color: #38e08a;"></i>
-      </div>
-      <h2 style="font-size: 22px; font-weight: 400; margin-bottom: 8px; color: #ffffff;">Live!</h2>
-      <p style="font-size: 14px; color: #8e8e93; margin-bottom: 24px; line-height: 20px;">Your site is ready on production domains.</p>
-      
-      <div class="actions-row">
-        <a id="link-external" href="#" target="_blank" class="m3-button-tonal" style="flex: 1; text-decoration: none;">
-          <i data-lucide="external-link"></i>
-        </a>
-        <button id="btn-copy" class="m3-button" style="flex: 2;">
-          <i data-lucide="copy" style="margin-right: 8px;"></i>Copy
-        </button>
-        <button id="btn-back" class="m3-button-tonal" style="flex: 1;">
-          <i data-lucide="refresh-cw"></i>
-        </button>
       </div>
     </div>
 
   </div>
 
   <script>
-    // Native Mobile & M3 CSS Compilation (JS-Injected dynamically to bypass static styles)
+    // JS-only compiled styling payload (purely programmatic inline integration)
     const styleBlock = document.createElement("style");
     styleBlock.innerHTML = `
       * {
@@ -127,9 +66,10 @@
         -webkit-tap-highlight-color: transparent;
       }
       body, html {
-        background-color: #000000;
-        color: #e3e3e3;
-        font-family: system-ui, -apple-system, sans-serif;
+        background-color: #FFF314; /* Classic Neo-Brutalist Electric Yellow */
+        color: #000000;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: 900;
         width: 100%;
         height: 100%;
         overflow: hidden;
@@ -140,215 +80,118 @@
         -webkit-user-select: none;
         touch-action: none;
       }
-      #m3-app {
-        background-color: #121212;
-        border: 1px solid #232325;
-        border-radius: 28px;
-        padding: 24px;
+      #brutalist-container {
+        background-color: #FFFFFF;
+        border: 4px solid #000000;
+        box-shadow: 8px 8px 0px #000000;
+        padding: 32px 24px;
         width: 100%;
-        max-width: 340px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+        max-width: 320px;
+        min-height: 200px;
         display: flex;
         flex-direction: column;
+        align-items: center;
+        justify-content: center;
         position: relative;
-        animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: transform 0.15s, box-shadow 0.15s;
       }
-      .view {
+      .brutalist-view {
         display: none;
         flex-direction: column;
         align-items: center;
-        animation: slideIn 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
-      }
-      .view.active {
-        display: flex;
-      }
-      #profile-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 24px;
-        width: 100%;
-        border-bottom: 1px solid #1a1a1c;
-        padding-bottom: 16px;
-      }
-      #user-avatar {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        border: 1.5px solid #28282a;
-        background-color: #1e1e20;
-      }
-      #user-name {
-        font-size: 13px;
-        font-weight: 500;
-        color: #ffffff;
-      }
-      #connection-status {
-        font-size: 11px;
-        color: #8e8e93;
-      }
-      .icon-avatar {
-        background-color: #1e1e20;
-        border-radius: 50%;
-        width: 64px;
-        height: 64px;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        margin-bottom: 20px;
-        color: #ffffff;
+        width: 100%;
       }
-      .icon-avatar i {
-        width: 28px;
-        height: 28px;
+      .brutalist-view.active {
+        display: flex;
       }
-      input[type="password"] {
-        background-color: #1e1e20;
-        border: 1px solid #28282a;
-        border-radius: 12px;
-        color: #ffffff;
-        font-family: monospace;
-        font-size: 14px;
+      
+      /* Merged Brutalist Prompt Bar */
+      .m3-prompt-bar {
+        display: flex;
+        width: 100%;
+        border: 3px solid #000000;
+        box-shadow: 4px 4px 0px #000000;
+        background: #FFFFFF;
+        transition: transform 0.05s, box-shadow 0.05s;
+      }
+      .m3-prompt-bar:focus-within {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0px #000000;
+      }
+      .m3-prompt-bar input {
+        flex: 1;
+        border: none;
         padding: 14px;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 24px;
         outline: none;
-        transition: border-color 0.2s, background-color 0.2s;
-      }
-      input[type="password"]:focus {
-        border-color: #a8c7fa;
-        background-color: #0b0b0c;
-      }
-      .actions-row {
-        display: flex;
-        gap: 12px;
-        width: 100%;
-      }
-      .m3-button {
-        background-color: #a8c7fa;
-        color: #004a77;
-        font-size: 14px;
-        font-weight: 500;
-        height: 48px;
-        border-radius: 100px;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.1s, filter 0.2s;
-        outline: none;
-      }
-      .m3-button:active {
-        transform: scale(0.96);
-        filter: brightness(0.9);
-      }
-      .m3-button-tonal {
-        background-color: #1e1e20;
-        color: #c4c6d0;
-        font-size: 14px;
-        font-weight: 500;
-        height: 48px;
-        border-radius: 100px;
-        border: 1px solid #2c2c2e;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.1s, background-color 0.2s;
-        outline: none;
-      }
-      .m3-button-tonal:active {
-        transform: scale(0.96);
-        background-color: #2a2a2d;
-      }
-      .m3-icon-btn {
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: 900;
         background: transparent;
-        border: none;
-        color: #8e8e93;
-        width: 32px;
-        height: 32px;
+        color: #000000;
+        width: 50%;
+      }
+      .m3-prompt-bar button {
+        border-left: 3px solid #000000;
+        border-top: none;
+        border-bottom: none;
+        border-right: none;
+        background: #00FF66; /* Neon Green */
+        padding: 0 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+      }
+      .m3-prompt-bar button:active {
+        background: #00cc52;
+      }
+
+      /* Brutalist Square Buttons */
+      .brutalist-btn {
+        color: #000000;
+        border: 3px solid #000000;
+        box-shadow: 4px 4px 0px #000000;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 16px;
+        font-weight: 900;
+        padding: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.05s, box-shadow 0.05s;
+        outline: none;
+      }
+      .brutalist-btn:active {
+        transform: translate(4px, 4px);
+        box-shadow: 0px 0px 0px #000000;
+      }
+
+      /* Dynamic Heavy Ring Loader */
+      .brutalist-circle-loader {
+        width: 54px;
+        height: 54px;
+        border: 8px solid #000000;
+        border-top: 8px solid #FFF314;
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background-color 0.2s, color 0.2s;
+        animation: brut-spin 0.6s linear infinite;
       }
-      .m3-icon-btn:hover {
-        background-color: #242426;
-        color: #ffffff;
+      @keyframes brut-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
-      .m3-dropzone {
-        border: 2px dashed #3c3c3e;
-        border-radius: 20px;
-        width: 100%;
-        padding: 40px 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-      .m3-dropzone:active {
-        background-color: #161618;
-        border-color: #a8c7fa;
-      }
-      .m3-progress-bar {
-        width: 100%;
-        height: 4px;
-        background-color: #1a1a1c;
-        border-radius: 100px;
-        overflow: hidden;
-        position: relative;
-      }
-      .m3-progress-value {
-        width: 100%;
-        height: 100%;
-        background-color: #a8c7fa;
-        position: absolute;
-        animation: m3-bar 1.5s infinite linear;
-        transform-origin: 0% 50%;
-      }
-      .progress-step {
-        color: #2c2c2e;
-        transition: color 0.3s;
-      }
-      .progress-step.active {
-        color: #ffffff;
-        animation: pulse 1s infinite alternate;
-      }
-      .progress-step.done {
-        color: #38e08a;
-      }
-      @keyframes m3-bar {
-        0% { transform: translateX(-100%) scaleX(0.2); }
-        50% { transform: translateX(0%) scaleX(0.5); }
-        100% { transform: translateX(100%) scaleX(0.2); }
-      }
-      @keyframes pulse {
-        from { opacity: 0.4; }
-        to { opacity: 1; }
-      }
-      @keyframes scaleUp {
-        from { transform: scale(0.95); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-      }
-      @keyframes slideIn {
-        from { transform: translateY(12px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
+
+      /* Brutalist Shake Alert */
       .shake {
-        animation: m3-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        animation: brut-shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
       }
-      @keyframes m3-shake {
-        10%, 90% { transform: translate3d(-1px, 0, 0); }
-        20%, 80% { transform: translate3d(2px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
-        40%, 60% { transform: translate3d(3px, 0, 0); }
+      @keyframes brut-shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(4px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+        40%, 60% { transform: translate3d(6px, 0, 0); }
       }
     `;
     document.head.appendChild(styleBlock);
@@ -361,29 +204,17 @@
     document.addEventListener("DOMContentLoaded", () => {
       const patInput = document.getElementById("pat-input");
       const patSubmit = document.getElementById("pat-submit");
-      const dropzone = document.getElementById("state-drop");
+      const btnPlus = document.getElementById("btn-plus");
       const fileInput = document.getElementById("file-input");
-      const btnResetToken = document.getElementById("btn-reset-token");
       const btnCopy = document.getElementById("btn-copy");
       const btnBack = document.getElementById("btn-back");
-      const btnDeployRetry = document.getElementById("btn-deploy-retry");
-      const btnFileSelectRetry = document.getElementById("btn-file-select-retry");
 
       const view1 = document.getElementById("view-1");
       const view2 = document.getElementById("view-2");
       const view3 = document.getElementById("view-3");
+      const viewLoading = document.getElementById("view-loading");
 
-      const stateDrop = document.getElementById("state-drop");
-      const stateDeploying = document.getElementById("state-deploying");
-      const stateError = document.getElementById("state-error");
-
-      const stepUser = document.getElementById("step-user");
-      const stepRepo = document.getElementById("step-repo");
-      const stepFile = document.getElementById("step-file");
-      const stepPages = document.getElementById("step-pages");
-
-      const appContainer = document.getElementById("m3-app");
-      appContainer.style.display = "flex"; // Soft mount
+      const container = document.getElementById("brutalist-container");
 
       initApp();
 
@@ -393,15 +224,11 @@
 
         if (token) {
           showView(2);
-          if (cache) {
-            applyProfile(JSON.parse(cache));
-          } else {
-            // Lazy load user info to refresh cache details
+          if (!cache) {
             fetchUserSilent(token);
           }
         } else {
           showView(1);
-          hideProfile();
         }
         lucide.createIcons();
       }
@@ -410,62 +237,31 @@
         view1.classList.remove("active");
         view2.classList.remove("active");
         view3.classList.remove("active");
+        viewLoading.classList.remove("active");
 
         if (step === 1) {
           view1.classList.add("active");
         } else if (step === 2) {
           view2.classList.add("active");
-          showSubstate("drop");
         } else if (step === 3) {
           view3.classList.add("active");
+        } else if (step === "loading") {
+          viewLoading.classList.add("active");
         }
-      }
-
-      function showSubstate(state) {
-        stateDrop.style.display = "none";
-        stateDeploying.style.display = "none";
-        stateError.style.display = "none";
-
-        if (state === "drop") {
-          stateDrop.style.display = "flex";
-        } else if (state === "deploying") {
-          stateDeploying.style.display = "flex";
-        } else if (state === "error") {
-          stateError.style.display = "flex";
-        }
-      }
-
-      function updateStage(text) {
-        document.getElementById("deploy-stage-text").textContent = text;
-      }
-
-      // Safe Profile View Setup
-      function applyProfile(userData) {
-        document.getElementById("profile-header").style.display = "flex";
-        document.getElementById("user-avatar").src = userData.avatar;
-        document.getElementById("user-name").textContent = `@${userData.username}`;
-        document.getElementById("connection-status").textContent = "verified access";
-      }
-
-      function hideProfile() {
-        document.getElementById("profile-header").style.display = "none";
       }
 
       async function fetchUserSilent(token) {
         try {
           const { data } = await githubRequest("/user", token);
-          const meta = { username: data.login, avatar: data.avatar_url };
-          localStorage.setItem("gh_user", JSON.stringify(meta));
-          applyProfile(meta);
+          localStorage.setItem("gh_user", JSON.stringify({ username: data.login }));
         } catch (err) {
-          // Token expired or invalid
           localStorage.removeItem("gh_pat");
           localStorage.removeItem("gh_user");
           initApp();
         }
       }
 
-      // Step 1 Submission
+      // Action Handlers for Prompt Bar Input
       patSubmit.addEventListener("click", async () => {
         const token = patInput.value.trim();
         if (!token) {
@@ -474,43 +270,28 @@
         }
 
         patSubmit.disabled = true;
-        patSubmit.innerHTML = `...`;
-
+        
         try {
-          const { headers, data } = await githubRequest("/user", token);
-          
-          // Fast verification setup
-          const userData = { username: data.login, avatar: data.avatar_url };
+          const { data } = await githubRequest("/user", token);
           localStorage.setItem("gh_pat", token);
-          localStorage.setItem("gh_user", JSON.stringify(userData));
-          
-          applyProfile(userData);
+          localStorage.setItem("gh_user", JSON.stringify({ username: data.login }));
           initApp();
         } catch (err) {
           triggerHapticShake();
         } finally {
           patSubmit.disabled = false;
-          patSubmit.innerHTML = `<i data-lucide="arrow-right"></i>`;
-          lucide.createIcons();
         }
       });
 
-      btnResetToken.addEventListener("click", () => {
-        localStorage.removeItem("gh_pat");
-        localStorage.removeItem("gh_user");
-        initApp();
-      });
-
-      // Drag, Drop, and Native Selector interactions
-      dropzone.addEventListener("click", () => fileInput.click());
-      dropzone.addEventListener("dragover", (e) => e.preventDefault());
-      dropzone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        if (e.dataTransfer.files.length > 0) {
-          parseFile(e.dataTransfer.files[0]);
+      // Handle Enter Key Press in Prompt Bar
+      patInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          patSubmit.click();
         }
       });
 
+      btnPlus.addEventListener("click", () => fileInput.click());
+      
       fileInput.addEventListener("change", (e) => {
         if (e.target.files.length > 0) {
           parseFile(e.target.files[0]);
@@ -528,21 +309,12 @@
           deploy();
         };
         reader.onerror = () => {
-          showError("Could not parse file bytes.");
+          triggerHapticShake();
         };
         reader.readAsText(file);
       }
 
-      btnDeployRetry.addEventListener("click", () => {
-        if (selectedFileContent) deploy();
-      });
-      btnFileSelectRetry.addEventListener("click", () => {
-        selectedFileContent = null;
-        fileInput.value = "";
-        showSubstate("drop");
-      });
-
-      // Speed-Optimized Parallel Pipeline
+      // Fast-Optimized Execution Pipeline
       async function deploy() {
         const token = localStorage.getItem("gh_pat");
         const cache = JSON.parse(localStorage.getItem("gh_user") || "{}");
@@ -553,84 +325,65 @@
           return;
         }
 
-        showSubstate("deploying");
-        resetProgressSteps();
-        updateStage("Querying remote targets...");
-
+        showView("loading");
         const repoName = "instant-page";
 
         try {
-          updateStepState(stepUser, "active");
-          
-          // FAST-PATH Execution: Query all endpoints simultaneously
+          // Fire parallel check queries to minimize remote latency
           const [repoRes, fileRes, pagesRes] = await Promise.allSettled([
             githubRequest(`/repos/${username}/${repoName}`, token),
             githubRequest(`/repos/${username}/${repoName}/contents/index.html`, token),
             githubRequest(`/repos/${username}/${repoName}/pages`, token)
           ]);
 
-          updateStepState(stepUser, "done");
-          updateStepState(stepRepo, "active");
-
           let defaultBranch = "main";
           let repoExists = false;
           let fileSha = null;
           let pagesSetupNeeded = true;
 
-          // Process Repo Response
           if (repoRes.status === "fulfilled") {
             repoExists = true;
             defaultBranch = repoRes.value.data.default_branch || "main";
           } else if (repoRes.reason.status !== 404) {
-            throw new Error(`Repository checking failure: ${repoRes.reason.status}`);
+            throw new Error();
           }
 
-          // Process index.html SHA details
           if (fileRes.status === "fulfilled") {
             fileSha = fileRes.value.data.sha;
           }
 
-          // Process Pages Deployment properties
           if (pagesRes.status === "fulfilled") {
             pagesSetupNeeded = false;
           }
 
-          // Create Repo if absent
+          // Provision repo if missing
           if (!repoExists) {
-            updateStage("Provisioning sandbox repository...");
             const creation = await githubRequest("/user/repos", token, {
               method: "POST",
               body: JSON.stringify({
                 name: repoName,
                 private: false,
                 auto_init: true,
-                description: "instant sandbox hosting"
+                description: "instant sandbox"
               })
             });
             defaultBranch = creation.data.default_branch || "main";
-            // Wait brief moment for GitHub backend provisioning logic to settle
             await new Promise(r => setTimeout(r, 2000));
           }
-          updateStepState(stepRepo, "done");
 
           // Upload bundle payload
-          updateStepState(stepFile, "active");
-          updateStage("Uploading code bundle...");
           await githubRequest(`/repos/${username}/${repoName}/contents/index.html`, token, {
             method: "PUT",
             body: JSON.stringify({
-              message: "Sandbox production deployment sync",
+              message: "deploy sandbox sync",
               content: selectedFileContent,
               sha: fileSha,
               branch: defaultBranch
             })
           });
-          updateStepState(stepFile, "done");
 
-          // Run Pages setup if not enabled
-          updateStepState(stepPages, "active");
+          // Enable pages
           if (pagesSetupNeeded) {
-            updateStage("Deploying production URL...");
             try {
               await githubRequest(`/repos/${username}/${repoName}/pages`, token, {
                 method: "POST",
@@ -642,20 +395,20 @@
                 })
               });
             } catch (err) {
-              console.warn("Pages configuration notice.");
+              console.warn("Skip Pages Setup error");
             }
           }
-          updateStepState(stepPages, "done");
 
           currentUrl = `https://${username}.github.io/${repoName}/`;
           document.getElementById("link-external").href = currentUrl;
 
           setTimeout(() => {
             showView(3);
-          }, 800);
+          }, 600);
 
         } catch (err) {
-          showError(err.message || "Pipeline execution failed.");
+          triggerHapticShake();
+          showView(2); // Kick back to file selection page on error
         }
       }
 
@@ -673,10 +426,6 @@
         if (!response.ok) {
           const err = new Error(`HTTP ${response.status}`);
           err.status = response.status;
-          try {
-            const serverMsg = await response.json();
-            err.message = serverMsg.message || err.message;
-          } catch(e){}
           throw err;
         }
         if (response.status === 204) return { headers: response.headers, data: null };
@@ -684,38 +433,23 @@
         return { headers: response.headers, data };
       }
 
-      function resetProgressSteps() {
-        [stepUser, stepRepo, stepFile, stepPages].forEach(step => {
-          step.className = "progress-step";
-        });
-      }
-
-      function updateStepState(el, state) {
-        el.className = "progress-step " + state;
-      }
-
-      function showError(msg) {
-        showSubstate("error");
-        document.getElementById("error-text").textContent = msg;
-      }
-
       function triggerHapticShake() {
-        appContainer.classList.add("shake");
-        appContainer.style.borderColor = "#ff5449";
+        container.classList.add("shake");
+        container.style.backgroundColor = "#FF5555";
         setTimeout(() => {
-          appContainer.classList.remove("shake");
-          appContainer.style.borderColor = "#232325";
-        }, 400);
+          container.classList.remove("shake");
+          container.style.backgroundColor = "#FFFFFF";
+        }, 350);
       }
 
       btnCopy.addEventListener("click", () => {
         navigator.clipboard.writeText(currentUrl).then(() => {
-          btnCopy.innerHTML = `<i data-lucide="check" style="color: #38e08a; margin-right: 8px;"></i>Copied`;
+          btnCopy.innerHTML = `<i data-lucide="check" style="width: 18px; height: 18px; stroke-width: 3;"></i>`;
           lucide.createIcons();
           setTimeout(() => {
-            btnCopy.innerHTML = `<i data-lucide="copy" style="margin-right: 8px;"></i>Copy`;
+            btnCopy.innerHTML = `<i data-lucide="copy" style="width: 18px; height: 18px; stroke-width: 3;"></i>`;
             lucide.createIcons();
-          }, 1500);
+          }, 1200);
         });
       });
 
