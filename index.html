@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Fits mobile screen and disables browser zoom -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Deploy</title>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: #000000; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 16px; width: 100vw; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; box-sizing: border-box; user-select: none; -webkit-user-select: none;">
+
+  <div id="container" style="width: 100%; max-width: 320px; background-color: #050505; border: 1px solid #1c1c1c; border-radius: 12px; padding: 24px; box-sizing: border-box; text-align: center; position: relative; transition: border-color 0.3s ease;">
+    
+    <!-- Reset PAT Icon (Top Right) -->
+    <button id="btn-reset-token" style="display: none; position: absolute; top: 12px; right: 12px; border: none; background: transparent; color: #555; cursor: pointer; padding: 4px;">
+      <i data-lucide="key-round" style="width: 16px; height: 16px;"></i>
+    </button>
+
+    <!-- Page 1: Personal Access Token -->
+    <div id="view-1" style="display: none; flex-direction: column; align-items: center; justify-content: center;">
+      <i data-lucide="shield-keyhole" style="width: 40px; height: 40px; margin-bottom: 16px; color: #525252;"></i>
+      <input id="pat-input" type="password" placeholder="GitHub PAT" style="background: #000; border: 1px solid #222; color: #fff; font-family: monospace; font-size: 14px; padding: 12px; border-radius: 8px; width: 100%; text-align: center; margin-bottom: 16px; outline: none; box-sizing: border-box;" />
+      
+      <div style="display: flex; justify-content: center; gap: 12px; width: 100%;">
+        <a href="https://github.com/settings/tokens/new?scopes=public_repo" target="_blank" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+          <i data-lucide="help-circle" style="width: 18px; height: 18px;"></i>
+        </a>
+        <button id="pat-submit" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; outline: none;">
+          <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Page 2: File Select & Deploy -->
+    <div id="view-2" style="display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+      
+      <!-- State 2a: Dropzone/Selector -->
+      <div id="state-drop" style="border: 2px dashed #222; border-radius: 10px; width: 100%; padding: 32px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #525252; cursor: pointer; box-sizing: border-box; gap: 12px;">
+        <i data-lucide="file-up" style="width: 40px; height: 40px;"></i>
+        <span style="font-size: 13px; color: #737373;">HTML</span>
+        <input type="file" id="file-input" accept=".html" style="display: none;" />
+      </div>
+
+      <!-- State 2b: Deploying Progress -->
+      <div id="state-deploying" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+        <div style="display: flex; justify-content: space-around; width: 100%; margin-bottom: 20px;">
+          <div id="step-user" style="color: #222;"><i data-lucide="user" style="width: 18px; height: 18px;"></i></div>
+          <div id="step-repo" style="color: #222;"><i data-lucide="git-branch" style="width: 18px; height: 18px;"></i></div>
+          <div id="step-file" style="color: #222;"><i data-lucide="file-code" style="width: 18px; height: 18px;"></i></div>
+          <div id="step-pages" style="color: #222;"><i data-lucide="globe" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        <div id="loading-spinner" style="display: inline-block;">
+          <i data-lucide="loader-2" style="width: 18px; height: 18px; color: #525252;"></i>
+        </div>
+      </div>
+
+      <!-- State 2c: Error -->
+      <div id="state-error" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+        <i data-lucide="alert-triangle" style="width: 40px; height: 40px; color: #ef4444; margin-bottom: 16px;"></i>
+        <div style="display: flex; gap: 12px; justify-content: center; width: 100%;">
+          <button id="btn-file-select-retry" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i></button>
+          <button id="btn-deploy-retry" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i></button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Page 3: Success Screen -->
+    <div id="view-3" style="display: none; flex-direction: column; align-items: center; justify-content: center;">
+      <i data-lucide="rocket" style="width: 40px; height: 40px; color: #22c55e; margin-bottom: 20px;"></i>
+      <div style="display: flex; justify-content: center; gap: 12px; width: 100%;">
+        <a id="link-external" href="#" target="_blank" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+          <i data-lucide="external-link" style="width: 18px; height: 18px;"></i>
+        </a>
+        <button id="btn-copy" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; outline: none;">
+          <i data-lucide="copy" style="width: 18px; height: 18px;"></i>
+        </button>
+        <button id="btn-back" style="background: none; border: 1px solid #222; color: #737373; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; outline: none;">
+          <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentUrl = "";
+    let selectedFileContent = null;
+    let rotationAngle = 0;
+    let spinnerInterval;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const patInput = document.getElementById("pat-input");
+      const patSubmit = document.getElementById("pat-submit");
+      const dropzone = document.getElementById("state-drop");
+      const fileInput = document.getElementById("file-input");
+      const btnResetToken = document.getElementById("btn-reset-token");
+      const btnCopy = document.getElementById("btn-copy");
+      const btnBack = document.getElementById("btn-back");
+      const btnDeployRetry = document.getElementById("btn-deploy-retry");
+      const btnFileSelectRetry = document.getElementById("btn-file-select-retry");
+
+      // Views
+      const view1 = document.getElementById("view-1");
+      const view2 = document.getElementById("view-2");
+      const view3 = document.getElementById("view-3");
+
+      // Progress blocks
+      const stateDrop = document.getElementById("state-drop");
+      const stateDeploying = document.getElementById("state-deploying");
+      const stateError = document.getElementById("state-error");
+
+      const stepUser = document.getElementById("step-user");
+      const stepRepo = document.getElementById("step-repo");
+      const stepFile = document.getElementById("step-file");
+      const stepPages = document.getElementById("step-pages");
+
+      initApp();
+
+      function initApp() {
+        const token = localStorage.getItem("gh_pat");
+        if (token) {
+          showView(2);
+          btnResetToken.style.display = "flex";
+        } else {
+          showView(1);
+          btnResetToken.style.display = "none";
+        }
+        lucide.createIcons();
+      }
+
+      function showView(step) {
+        view1.style.display = "none";
+        view2.style.display = "none";
+        view3.style.display = "none";
+
+        if (step === 1) {
+          view1.style.display = "flex";
+          patInput.value = "";
+        } else if (step === 2) {
+          view2.style.display = "flex";
+          showSubstate("drop");
+        } else if (step === 3) {
+          view3.style.display = "flex";
+        }
+      }
+
+      function showSubstate(state) {
+        stateDrop.style.display = "none";
+        stateDeploying.style.display = "none";
+        stateError.style.display = "none";
+        stopSpinner();
+
+        if (state === "drop") {
+          stateDrop.style.display = "flex";
+        } else if (state === "deploying") {
+          stateDeploying.style.display = "flex";
+          startSpinner();
+        } else if (state === "error") {
+          stateError.style.display = "flex";
+        }
+      }
+
+      // JS-only rotation helper
+      function startSpinner() {
+        rotationAngle = 0;
+        const spinner = document.getElementById("loading-spinner");
+        spinnerInterval = setInterval(() => {
+          rotationAngle = (rotationAngle + 10) % 360;
+          spinner.style.transform = `rotate(${rotationAngle}deg)`;
+        }, 40);
+      }
+
+      function stopSpinner() {
+        clearInterval(spinnerInterval);
+      }
+
+      // Validate PAT
+      patSubmit.addEventListener("click", async () => {
+        const token = patInput.value.trim();
+        if (!token) {
+          triggerShake();
+          return;
+        }
+
+        patSubmit.disabled = true;
+        patSubmit.innerHTML = `...`;
+
+        try {
+          const response = await fetch("https://api.github.com/user", {
+            headers: { "Authorization": `token ${token}` }
+          });
+          if (!response.ok) throw new Error();
+
+          localStorage.setItem("gh_pat", token);
+          initApp();
+        } catch (err) {
+          triggerShake();
+        } finally {
+          patSubmit.disabled = false;
+          patSubmit.innerHTML = `<i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>`;
+          lucide.createIcons();
+        }
+      });
+
+      // Clear Token
+      btnResetToken.addEventListener("click", () => {
+        localStorage.removeItem("gh_pat");
+        initApp();
+      });
+
+      // Handle File Drops / Selections
+      dropzone.addEventListener("click", () => fileInput.click());
+      dropzone.addEventListener("dragover", (e) => e.preventDefault());
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      function handleFile(file) {
+        if (!file.name.endsWith(".html")) {
+          triggerShake();
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          selectedFileContent = btoa(unescape(encodeURIComponent(e.target.result)));
+          deploy();
+        };
+        reader.readAsText(file);
+      }
+
+      btnDeployRetry.addEventListener("click", () => {
+        if (selectedFileContent) deploy();
+      });
+      btnFileSelectRetry.addEventListener("click", () => {
+        selectedFileContent = null;
+        fileInput.value = "";
+        showSubstate("drop");
+      });
+
+      // Main deployment sequence
+      async function deploy() {
+        const token = localStorage.getItem("gh_pat");
+        if (!token) {
+          initApp();
+          return;
+        }
+
+        showSubstate("deploying");
+        resetProgressSteps();
+
+        try {
+          // Phase 1: User details
+          updateStepUI(stepUser, "active");
+          const user = await githubRequest("/user", token);
+          const username = user.login;
+          updateStepUI(stepUser, "done");
+
+          // Phase 2: Repo verification & setup
+          updateStepUI(stepRepo, "active");
+          const repoName = "instant-page";
+          let repoExists = false;
+          let repoDetails;
+
+          try {
+            repoDetails = await githubRequest(`/repos/${username}/${repoName}`, token);
+            repoExists = true;
+          } catch (err) {
+            if (err.status !== 404) throw err;
+          }
+
+          if (!repoExists) {
+            repoDetails = await githubRequest("/user/repos", token, {
+              method: "POST",
+              body: JSON.stringify({
+                name: repoName,
+                private: false,
+                auto_init: true,
+                description: "instant deploy"
+              })
+            });
+            await new Promise(r => setTimeout(r, 2000));
+          }
+          const defaultBranch = repoDetails.default_branch || "main";
+          updateStepUI(stepRepo, "done");
+
+          // Phase 3: Push index.html
+          updateStepUI(stepFile, "active");
+          let fileSha = null;
+          try {
+            const fileData = await githubRequest(`/repos/${username}/${repoName}/contents/index.html`, token);
+            fileSha = fileData.sha;
+          } catch (err) {
+            if (err.status !== 404) throw err;
+          }
+
+          await githubRequest(`/repos/${username}/${repoName}/contents/index.html`, token, {
+            method: "PUT",
+            body: JSON.stringify({
+              message: "deploy index.html",
+              content: selectedFileContent,
+              sha: fileSha,
+              branch: defaultBranch
+            })
+          });
+          updateStepUI(stepFile, "done");
+
+          // Phase 4: Configure Pages
+          updateStepUI(stepPages, "active");
+          let pagesEnabled = false;
+          try {
+            await githubRequest(`/repos/${username}/${repoName}/pages`, token);
+            pagesEnabled = true;
+          } catch (err) {
+            if (err.status !== 404) throw err;
+          }
+
+          if (!pagesEnabled) {
+            try {
+              await githubRequest(`/repos/${username}/${repoName}/pages`, token, {
+                method: "POST",
+                body: JSON.stringify({
+                  source: {
+                    branch: defaultBranch,
+                    path: "/"
+                  }
+                })
+              });
+            } catch (err) {
+              console.warn("Pages configuration fallback status.");
+            }
+          }
+          updateStepUI(stepPages, "done");
+
+          currentUrl = `https://${username}.github.io/${repoName}/`;
+          document.getElementById("link-external").href = currentUrl;
+
+          setTimeout(() => {
+            showView(3);
+          }, 800);
+
+        } catch (err) {
+          console.error(err);
+          showSubstate("error");
+        }
+      }
+
+      async function githubRequest(endpoint, token, options = {}) {
+        const headers = {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github+json",
+          ...options.headers
+        };
+        const response = await fetch(`https://api.github.com${endpoint}`, {
+          ...options,
+          headers
+        });
+        if (!response.ok) {
+          const err = new Error(`HTTP ${response.status}`);
+          err.status = response.status;
+          throw err;
+        }
+        if (response.status === 204) return null;
+        return response.json();
+      }
+
+      function resetProgressSteps() {
+        stepUser.style.color = "#222";
+        stepRepo.style.color = "#222";
+        stepFile.style.color = "#222";
+        stepPages.style.color = "#222";
+      }
+
+      function updateStepUI(stepElement, state) {
+        if (state === "active") {
+          stepElement.style.color = "#ffffff";
+        } else if (state === "done") {
+          stepElement.style.color = "#22c55e";
+        }
+      }
+
+      function triggerShake() {
+        const container = document.getElementById("container");
+        container.classList.add("shake");
+        container.style.borderColor = "#ef4444";
+        setTimeout(() => {
+          container.classList.remove("shake");
+          container.style.borderColor = "#1c1c1c";
+        }, 500);
+      }
+
+      btnCopy.addEventListener("click", () => {
+        navigator.clipboard.writeText(currentUrl).then(() => {
+          btnCopy.innerHTML = `<i data-lucide="check" style="width: 18px; height: 18px; color: #22c55e;"></i>`;
+          lucide.createIcons();
+          setTimeout(() => {
+            btnCopy.innerHTML = `<i data-lucide="copy" style="width: 18px; height: 18px;"></i>`;
+            lucide.createIcons();
+          }, 1500);
+        });
+      });
+
+      btnBack.addEventListener("click", () => {
+        selectedFileContent = null;
+        fileInput.value = "";
+        showView(2);
+      });
+    });
+  </script>
+  
+  <!-- Helper CSS to support shake keyframe injection without stylesheets -->
+  <script>
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } } .shake { animation: shake 0.35s ease-in-out; }`;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
